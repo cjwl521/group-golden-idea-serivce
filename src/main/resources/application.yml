@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: group-golden-idea-serivce
+  profiles:
+      active:
+      - dit

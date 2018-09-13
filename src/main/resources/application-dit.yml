@@ -1,0 +1,49 @@
+spring:
+  datasource:
+     driver-class-name:
+     url: jdbc:mysql://119.3.17.146:3306/golden_idea
+     username: gd_admin
+     password: GD_admin123
+     hikari:
+       minimum-idle: 2
+       maximum-pool-size: 5
+  jpa:
+    hibernate:
+      ddl-auto: update # create 每次都重建表(数据会被清空）， update 更新表结构（数据不被清空，
+    show-sql: true
+    database-platform: org.hibernate.dialect.MySQL5Dialect
+
+  http:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+
+server:
+  servlet:
+    context-path: /group-golden-idea-serivce
+  port: 20001
+
+logging:
+  file: applog/logs/group-golden-idea-serivce.txt
+  level:
+    root: INFO
+
+WXConfig:
+  APPID: wx076fbb69507edc49
+  APPSECRECT: ca6f01a4fe80de96519e4477aa86edd8
+  GRANTTYPE: authorization_code
+  WEBURL: https://jindian.ai-gogo.cn/login.html
+  WXURL: https://api.weixin.qq.com/sns/jscode2session?appid=APPID&secret=SECRET&js_code=JSCODE&grant_type=authorization_code
+EERConfig:
+  WX_ERROR_CODE: WX0001
+  DB_ERROR_CODE: DB0001
+  NN_ERROR_CODE: NN0001
+  EP_ERROR_CODE: EP0001
+  WX_ERROR_MSG: Failed to get OpenId!
+  DB_ERROR_MSG: Database operation failed!
+  NN_ERROR_MSG: Unknown exception, please contact the administrator!
+  EP_ERROR_MSG: argument is required, it must not be null
+
+FILEPATHConfig:
+  UPLOAD_FLODER: /home/sven/jindian/upload/

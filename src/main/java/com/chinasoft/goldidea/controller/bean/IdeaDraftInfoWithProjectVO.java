@@ -1,0 +1,30 @@
+package com.chinasoft.goldidea.controller.bean;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+
+import java.util.Date;
+
+@Data
+public class IdeaDraftInfoWithProjectVO {
+
+    @JsonProperty("ideaId")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private Long idea_id;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String idea;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonProperty("openId")
+    private String open_id;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private Integer status;
+    @JsonProperty("projectCount")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private Integer project_count;
+    private Long createTime;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private Long updateTime;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String filePath;
+}
