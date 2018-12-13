@@ -17,6 +17,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @Slf4j
@@ -100,17 +101,17 @@ public class IdeaDraftInfoController {
      */
     @PostMapping(value = "/ideaByVoice")
     public BaseResponse ideaAddByVoice(@RequestParam(value = "file") MultipartFile file,
-                                       @RequestParam(value = "openId") String openId) {
+                                       @RequestParam(value = "openId") String openId, @RequestParam(value = "filePath") String filePath) {
         log.info("***********************************Start method ideaAddByVoice()*************************************************");
+        log.info("filePath is 【{}】", filePath);
         BaseResponse baseResponse = new BaseResponse();
-
         if (StringUtils.isEmpty(openId)) {
             baseResponse.setStatus(EP_ERROR_CODE);
             baseResponse.getResponseBody().add(EP_ERROR_MSG);
             return baseResponse;
         }
         try {
-            IdeaDraftInfoVO resultVO = ideaDraftInfoService.saveAndUpload(file, openId);
+            IdeaDraftInfoVO resultVO = ideaDraftInfoService.saveAndUpload(file, openId, filePath);
             baseResponse.getResponseBody().add(resultVO);
             baseResponse.setStatus("200");
         } catch (BusinessException e) {
@@ -128,7 +129,8 @@ public class IdeaDraftInfoController {
     @PostMapping(value = "/updateIdeaByVoice")
     public BaseResponse updateVoice(@RequestParam(value = "file") MultipartFile file,
                                     @RequestParam(value = "openId") String openId,
-                                    @RequestParam(value = "ideaId") String ideaId) {
+                                    @RequestParam(value = "ideaId") String ideaId,
+                                    @RequestParam(value = "filePath") String filePath) {
         log.info("***********************************Start method updateVoice()*************************************************");
         BaseResponse baseResponse = new BaseResponse();
 
@@ -138,7 +140,7 @@ public class IdeaDraftInfoController {
             return baseResponse;
         }
 
-        BaseResponse resultResponse = uploadService.update(file, openId, ideaId);
+        BaseResponse resultResponse = uploadService.update(file, openId, ideaId,filePath);
 
         log.info("***********************************End method updateVoice()*************************************************");
         return resultResponse;
@@ -146,6 +148,7 @@ public class IdeaDraftInfoController {
 
     /**
      * 添加一个文字点子
+     *
      * @param vo
      * @return
      */
@@ -155,13 +158,13 @@ public class IdeaDraftInfoController {
         BaseResponse baseResponse = new BaseResponse();
 
         log.info("idea is 【{}】 , openId is 【{}】", vo.getIdea(), vo.getOpen_id());
-        if (StringUtils.isEmpty( vo.getOpen_id())) {
+        if (StringUtils.isEmpty(vo.getOpen_id())) {
             baseResponse.setStatus(EP_ERROR_CODE);
             baseResponse.getResponseBody().add(EP_ERROR_MSG);
             return baseResponse;
         }
         try {
-            IdeaDraftInfoVO resultvo = ideaDraftInfoService.save(vo.getIdea(),  vo.getOpen_id());
+            IdeaDraftInfoVO resultvo = ideaDraftInfoService.save(vo.getIdea(), vo.getOpen_id());
             resultvo.setOpen_id(null);// 不需要给前端返回该参数
             baseResponse.getResponseBody().add(resultvo);
             baseResponse.setStatus("200");

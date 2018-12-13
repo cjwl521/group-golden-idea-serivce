@@ -53,6 +53,8 @@ public class UserInfoController {
         UserInfoDomain userInfoDomain = new UserInfoDomain ();
         Assert.notNull (userInfo, "[Assertion failed] - this argument [UserInfoVO] is required; it must not be null");
         Assert.notNull (userInfo.getWxId (), "[Assertion failed] - this argument [WX Code] is required; it must not be null");
+        Assert.notNull (userInfo.getHead_url (), "[Assertion failed] - this argument [head url] is required; it must not be null");
+        Assert.notNull (userInfo.getNick_name (), "[Assertion failed] - this argument [nick name] is required; it must not be null");
         try {
             userInfoDomain.setWxId (userInfo.getWxId ());
             userInfoDomain.setCity (userInfo.getCity ());
@@ -124,7 +126,6 @@ public class UserInfoController {
                 "*******************************start method updateWebInfo*******************************"));
         Assert.notNull (openId, "[Assertion failed] - this argument [openId] is required; it must not be null");
         Assert.notNull (defaultAccountInfoVO, "[Assertion failed] - this argument [DefaultAccountInfoVO] is required; it must not be null");
-        DefaultAccountInfoVO vo = new DefaultAccountInfoVO ();
         defaultAccountInfoVO.setOpen_id (openId);
         BaseResponse baseResponse = new BaseResponse ();
         try {

@@ -1,10 +1,14 @@
 package com.chinasoft.goldidea.service.impl;
 
+import cn.hutool.Hutool;
+import cn.hutool.core.map.MapUtil;
 import com.chinasoft.goldidea.common.BaseResponse;
 import com.chinasoft.goldidea.common.ResponseCode;
 import com.chinasoft.goldidea.exception.BusinessException;
 import com.chinasoft.goldidea.po.IdeaDraftInfoPO;
+import com.chinasoft.goldidea.po.ProjectInfoPO;
 import com.chinasoft.goldidea.repository.IdeaDraftInfoRepository;
+import com.chinasoft.goldidea.repository.ProjectInfoRepository;
 import com.chinasoft.goldidea.service.UploadService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,8 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -28,6 +31,8 @@ public class UploadServiceImpl implements UploadService {
 
     @Autowired
     IdeaDraftInfoRepository ideaDraftInfoRepository;
+    @Autowired
+    ProjectInfoRepository projectInfoRepository;
 
     /**
      * 上传文件
@@ -68,16 +73,45 @@ public class UploadServiceImpl implements UploadService {
         return BaseResponse.createBySuccess("upload success", returnPath.toString());
     }
 
+    @Override
+    public BaseResponse uploadProject(MultipartFile file, String openId,
+                                      String ideaDraft, Long projectId, String filePath) {
+        StringBuilder folderNamePath = new StringBuilder(UPLOAD_FLODER + SLASH + openId + SLASH + ideaDraft + SLASH + projectId);
+        String originalFilename = file.getOriginalFilename();
+        StringBuilder returnPath = new StringBuilder(openId + SLASH + ideaDraft + SLASH + projectId + SLASH + originalFilename);
+
+        File folderNameDir = new File(folderNamePath.toString());
+        if (!folderNameDir.exists()) {
+            folderNameDir.mkdirs();
+        }
+        File filer = new File(folderNameDir, originalFilename);
+        if(null !=filePath){
+            List<ProjectInfoPO> projectInfoPOList = projectInfoRepository.findAllById(projectId);
+            for (ProjectInfoPO projectInfoIndex: projectInfoPOList){
+                projectInfoIndex.setFilePath(filePath);
+                projectInfoRepository.save(projectInfoIndex);
+            }
+        }
+        try {
+            file.transferTo(filer);
+
+        } catch (Exception e) {
+            throw new BusinessException(ResponseCode.UPLODAFAIL.getCode(), ResponseCode.UPLODAFAIL.getDesc());
+        }
+
+        return BaseResponse.createBySuccess("upload success", returnPath.toString());
+    }
+
     /**
      * 更新点子语音文件
      */
     @Override
     public BaseResponse update(MultipartFile file, String openId,
-                               String ideaId) {
+                               String ideaId, String filePath) {
         StringBuilder folderNamePath = new StringBuilder(UPLOAD_FLODER + SLASH + openId + SLASH + ideaId);
         // TODO 1. 查找该路径是否存在文件，如果存在，删除该文件以夹非文件夹的文件，然后将传入的文件传入
         String originalFilename = file.getOriginalFilename();
-        StringBuilder returnPath = new StringBuilder(openId + SLASH + ideaId);
+        StringBuilder returnPath = new StringBuilder(openId + SLASH + ideaId + SLASH);
 
         File folderNameDir = new File(folderNamePath.toString());
         if (!folderNameDir.exists()) {
@@ -98,6 +132,7 @@ public class UploadServiceImpl implements UploadService {
             file.transferTo(filer);
             returnPath.append(originalFilename);
             IdeaDraftInfoPO ideaDraftInfoPO = ideaDraftInfoRepository.findByIdeaId(Long.valueOf(ideaId));
+            ideaDraftInfoPO.setIdea(filePath);
             ideaDraftInfoPO.setFilePath(returnPath.toString());
             ideaDraftInfoRepository.save(ideaDraftInfoPO);
         } catch (Exception e) {
@@ -178,16 +213,39 @@ public class UploadServiceImpl implements UploadService {
         }
         File file = new File(fileRootPath);
         List<String> fileNames = new ArrayList<String>();
+        Map<Long,String> pathMaps = new TreeMap<>();
+
         File[] listFiles = file.listFiles();
         if (listFiles != null) {
             if (listFiles != null && listFiles.length > 0) {
                 for (File f : listFiles) {
-                    fileNames.add(returnRootPath + SLASH + f.getName());
+                    pathMaps.put(f.lastModified(),f.getName());
+                }
+                for (Map.Entry<Long,String> entry: pathMaps.entrySet()){
+                    fileNames.add(returnRootPath + SLASH + entry.getValue());
                 }
             }
         } else {
             return BaseResponse.createByErrorMessage(ResponseCode.NULLERROR.getCode(), ResponseCode.NULLERROR.getDesc());
         }
         return BaseResponse.createBySuccess(ResponseCode.SUCCESS.getCode(), fileNames);
+    }
+
+    public BaseResponse delete(String path) {
+        File fileDirectory = new File(path);
+        File[] files = fileDirectory.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                if (file.isFile()) {
+                    file.delete();
+                } else if (file.isDirectory()) {
+                    this.delete(file.getAbsolutePath());
+                }
+            }
+        }
+        if (!"upload".equals(fileDirectory.getName())) {
+            fileDirectory.delete();
+        }
+        return BaseResponse.createBySuccess(ResponseCode.SUCCESS.getCode(), "delete success");
     }
 }

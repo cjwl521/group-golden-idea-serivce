@@ -4,6 +4,7 @@ package com.chinasoft.goldidea.controller;
 import com.chinasoft.goldidea.common.BaseResponse;
 import com.chinasoft.goldidea.common.ResponseCode;
 import com.chinasoft.goldidea.controller.bean.FilePathInfoVO;
+import com.chinasoft.goldidea.controller.bean.IdeaDraftInfoVO;
 import com.chinasoft.goldidea.exception.BusinessException;
 import com.chinasoft.goldidea.service.UploadService;
 import com.fasterxml.jackson.databind.ser.Serializers;
@@ -38,34 +39,35 @@ public class UploadController {
     /**
      * 上传文件接口
      *
-     * @param file 需要上传的文件
-     * @param openId 微信的openid
-     * @param ideaDraft 金点子id
-     * @param projectId 方案id
-     * @param coverState 备用，如果传入exist ，则传入同名文件不会被覆盖
+     * @param file       需要上传的文件
+     * @param openId     微信的openid
+     * @param ideaDraft  金点子id
+     * @param projectId  方案id
+     * @param filePath 备用，如果传入exist ，则传入同名文件不会被覆盖
      * @return
      */
     @PostMapping("/upload")
     public BaseResponse singleFileUpload(@RequestParam(value = "file") MultipartFile file,
                                          @RequestParam(value = "openId") String openId,
                                          @RequestParam(value = "ideaDraft") String ideaDraft,
-                                         @RequestParam(value = "projectId", required = false) String projectId,
-                                         @RequestParam(value = "coverState", required = false) String coverState) {
+                                         @RequestParam(value = "projectId") Long projectId,
+                                         @RequestParam(value = "filePath", required = false) String filePath) {
         if (file.getSize() == 0 || StringUtils.isEmpty(openId)) {
             return BaseResponse.createByErrorMessage("please select a file or input file path");
         }
-        if (StringUtils.isEmpty(openId) || StringUtils.isEmpty(ideaDraft) ) {
+        if (StringUtils.isEmpty(openId) || StringUtils.isEmpty(ideaDraft)) {
             return BaseResponse.createByErrorMessage("please input openId or ideaDraft");
         }
 
-        return uploadService.upload(file, openId, ideaDraft, projectId, coverState);
+        return uploadService.uploadProject(file, openId, ideaDraft, projectId, filePath);
 
     }
 
     /**
      * 根据url下载文件
+     *
      * @param response Servlet Respon 用来承载返回文件的内容
-     * @param url 需要下载文件的路径
+     * @param url      需要下载文件的路径
      * @return
      */
     @GetMapping(value = "/download")
@@ -73,21 +75,38 @@ public class UploadController {
         if (StringUtils.isEmpty(url)) {
             return BaseResponse.createByErrorMessage(ResponseCode.NULLERROR.getCode(), ResponseCode.NULLERROR.getDesc());
         }
-        return uploadService.download(response,url);
+        return uploadService.download(response, url);
     }
 
     /**
      * 查询方案内的可下载资源
-     * @param openId 用户的openid
+     *
+     * @param openId    用户的openid
      * @param ideaDraft 点子的id
      * @param projectId 方案的id
      * @return
      */
     @GetMapping("/list")
     public BaseResponse fileList(@RequestParam(value = "openId") String openId,
-                                 @RequestParam(value = "ideaDraft",required = false) String ideaDraft,
+                                 @RequestParam(value = "ideaDraft", required = false) String ideaDraft,
                                  @RequestParam(value = "projectId", required = false) String projectId) {
 
-        return uploadService.fileList(openId,ideaDraft,projectId);
+        return uploadService.fileList(openId, ideaDraft, projectId);
+    }
+
+    @GetMapping("/delete")
+    public BaseResponse delete(@RequestParam(value = "openId") String openId,
+                               @RequestParam(value = "ideaDraft", required = false) String ideaDraft,
+                               @RequestParam(value = "projectId", required = false) String projectId) {
+
+        String fileRootPath = "";
+        if (StringUtils.isEmpty(ideaDraft)) {
+            fileRootPath = UPLOAD_FLODER + SLASH + openId;
+        } else if (StringUtils.isEmpty(projectId)) {
+            fileRootPath = UPLOAD_FLODER + SLASH + openId + SLASH + ideaDraft;
+        } else {
+            fileRootPath = UPLOAD_FLODER + SLASH + openId + SLASH + ideaDraft + SLASH + projectId;
+        }
+        return uploadService.delete(fileRootPath);
     }
 }

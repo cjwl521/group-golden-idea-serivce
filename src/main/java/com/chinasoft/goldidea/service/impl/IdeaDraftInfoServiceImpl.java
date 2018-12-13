@@ -1,7 +1,6 @@
 package com.chinasoft.goldidea.service.impl;
 
 import com.chinasoft.goldidea.common.BaseResponse;
-import com.chinasoft.goldidea.common.ResponseCode;
 import com.chinasoft.goldidea.controller.bean.IdeaDraftInfoVO;
 import com.chinasoft.goldidea.controller.bean.IdeaDraftInfoWithProjectVO;
 import com.chinasoft.goldidea.controller.bean.TableCountVO;
@@ -19,8 +18,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -133,7 +132,7 @@ public class IdeaDraftInfoServiceImpl implements IdeaDraftInfoService {
         return vo;
     }
 
-    public IdeaDraftInfoVO saveAndUpload(MultipartFile file, String openId) throws Exception {
+    public IdeaDraftInfoVO saveAndUpload(MultipartFile file, String openId,String filePath) throws Exception {
 
         IdeaDraftInfoPO ideaDraftInfoPO = new IdeaDraftInfoPO();
         ideaDraftInfoPO.setOpen_id(openId);
@@ -145,6 +144,7 @@ public class IdeaDraftInfoServiceImpl implements IdeaDraftInfoService {
             Long idea_id = ideaDraftInfoPO.getIdea_id();
             BaseResponse baseResponse = uploadService.upload(file, openId, String.valueOf(idea_id), null, null);
             ideaDraftInfoPO.setFilePath((String)baseResponse.getResponseBody().get(0));
+            ideaDraftInfoPO.setIdea(filePath);
             ideaDraftInfoPO = ideaDraftInfoRepository.save(ideaDraftInfoPO);
         } catch (Exception e) {
             log.warn(e.getMessage());

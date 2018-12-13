@@ -110,6 +110,7 @@ public class UserInfoServiceImpl implements UserInfoService {
         //绑定user与OpenID关系，保存至数据库
         try {
             if (userInfoRepository.findCountByOpen_id (userData.getOpenid ()) < 1) {
+                userInfoPO.setHead_url (userInfoDomain.getHead_url ());
                 userInfoRepository.save (userInfoPO);
                 this.addDefaultAccountInfo (userData.getOpenid ());
             }
